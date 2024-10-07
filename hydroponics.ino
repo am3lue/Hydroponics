@@ -1,3 +1,13 @@
+//The components required
+/*
+1. LCD display
+2. pump or valve 
+3. Arduino MEGA or Arduino UNO or Arduino nano Or any other arduino compactible boards
+4. Connectors
+5. Realy Switch
+6. and other tools supporting wiring and advancing the project 
+*/
+
 //including the things
 
 #include <LiquidCrystal_I2C.h>
@@ -24,7 +34,7 @@ void setup() {
   lcd.setCursor(0,0);
   lcd.print("Hydroponics");
   lcd.setCursor((16-7),1);
-  lcd.print("by Blue");
+  lcd.print("By Blue");
   delay(4000);
 
 }
@@ -66,8 +76,8 @@ int water(int time){
 }
 
 void loop() {// sometimes is refered to as the main function which runs the code repeatedly
-  water(20);// IN SECONDS
+  water(20);//WATERING TIME IN SECONDS
   lcd.clear();
-  wait(30);// DELAY IN SECONDS
+  wait(30);// RESTING TIME IN SECONDS
   lcd.clear();
 }
