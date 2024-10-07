@@ -3,7 +3,7 @@
 1. LCD display
 2. pump or valve 
 3. Arduino MEGA or Arduino UNO or Arduino nano Or any other arduino compactible boards
-4. Connectors
+4. Connectors, jumpers, bread boards or motherboards
 5. Realy Switch
 6. and other tools supporting wiring and advancing the project 
 */
