@@ -14,18 +14,10 @@
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 #define relay 8
-#define blue 3
-#define green 4
-#define red 5
-#define yellow 6
+
 
 void setup() {
   pinMode(relay , OUTPUT);
-  pinMode(blue , INPUT);
-  pinMode(green , INPUT);
-  pinMode(red , INPUT);
-  pinMode(yellow , INPUT);
-  Serial.begin(9600);
   //intialize the lcd.....
 
   lcd.init();
