@@ -1,65 +1,69 @@
 #include <Wire.h>
 #include <RTClib.h>
-#include <LiquidCrystal_I2C.h>
-
-#define sensor A0
-#define valve 13
 
 RTC_DS3231 rtc;
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // Adjust the I2C address if necessary
+
+// Pin definitions
+const int moistureSensor1Pin = A0;
+//const int moistureSensor2Pin = A1;
+const int valvePin = 13; // Connect relay or MOSFET to control valve here
+
+// Moisture threshold for irrigation
+const int moistureThreshold = 500; // Adjust based on calibration
 
 void setup() {
-  pinMode(sensor, INPUT);
-  pinMode(valve, OUTPUT);
   Serial.begin(9600);
   Wire.begin();
   
-  rtc.begin();
-  if (rtc.lostPower()) {
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // Set RTC to compile time if power was lost
+  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
   }
 
-  lcd.begin();
-  lcd.backlight();
-  lcd.print("System Ready");
-  delay(2000);
-  lcd.clear();
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, setting the time!");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+
+  pinMode(valvePin, OUTPUT);
+  digitalWrite(valvePin, LOW); // Start with valve off
 }
 
 void loop() {
-  DateTime muda = rtc.now();
-  int sensorValue = analogRead(sensor);  // Read sensor value
+  DateTime now = rtc.now();
+  
+  // Read moisture levels
+  int moistureLevel1 = analogRead(moistureSensor1Pin);
+  //int moistureLevel2 = analogRead(moistureSensor2Pin);
+  int averageMoisture = (moistureLevel1 + 0);//moistureLevel2) / 2;
 
-  // Print sensor value to Serial Monitor
-  Serial.print("Sensor Value: ");
-  Serial.println(sensorValue);
+  // Check for specific irrigation times and soil moisture
+  bool morningTime = (now.hour() == 6 && now.minute() == 0); // 6:00 AM
+  bool morningEndTime = (now.hour() == 10 && now.minute() == 0); // 10:00 AM
+  bool eveningTime = (now.hour() == 16 && now.minute() == 0); // 4:00 PM
+  bool eveningEndTime = (now.hour() == 19 && now.minute() == 0); // 7:00 PM
 
-  // Morning watering from 6:00 AM to 10:00 AM
-  bool asubuhi = (muda.hour() >= 6 && muda.hour() < 10);
-
-  // Evening watering from 4:00 PM to 6:00 PM
-  bool jioni = (muda.hour() >= 16 && muda.hour() < 18);
-
-  // Control watering
-  if (asubuhi || jioni) {
-    digitalWrite(valve, HIGH);
-    Serial.println("Watering now!");
-    lcd.setCursor(0, 0);
-    lcd.print("Watering Plants   ");
-  } else {
-    digitalWrite(valve, LOW);
-    Serial.println("Watering stopped!");
-    lcd.setCursor(0, 0);
-    lcd.print("Watering Stopped  ");
+  // Open valve at start times if soil is dry
+  if ((morningTime || eveningTime) && averageMoisture < moistureThreshold) {
+    digitalWrite(valvePin, HIGH); // Open valve
+    Serial.println("Irrigation ON");
   }
 
-  // Display current time on LCD
-  lcd.setCursor(0, 1);
-  lcd.print("Time: ");
-  lcd.print(muda.hour());
-  lcd.print(":");
-  if (muda.minute() < 10) lcd.print("0");  // Adds leading zero to minutes
-  lcd.print(muda.minute());
+  // Close valve at end times
+  if (morningEndTime || eveningEndTime && averageMoisture > moistureThreshold) {
+    digitalWrite(valvePin, LOW); // Close valve
+    Serial.println("Irrigation OFF");
+  }
+
+  // Print current time and moisture levels for monitoring
+  Serial.print("Time: ");
+  Serial.print(now.hour());
+  Serial.print(":");
+  Serial.println(now.minute());
   
-  delay(1000); // Update every second
+  Serial.print("Moisture 1: ");
+  Serial.println(moistureLevel1);
+ /* Serial.print(" | Moisture 2: ");
+  Serial.println(moistureLevel2);
+*/
+  delay(1000); // Check every minute
 }
